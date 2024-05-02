@@ -2,14 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import lang from "../utils/languageConstants";
 import { useSelector, useDispatch } from "react-redux";
 import openai from "../utils/openai";
-import gptMovieResultConstants from "../utils/gptMovieResultConstants";
 import { API_OPTIONS } from "../utils/constants";
 import { addGptMovieResult } from "../utils/gptSlice";
 
 const GptSearchBar = () => {
   const langKey = useSelector((store) => store.config.lang);
   const movieResults = useSelector((store) => store.gpt.movieResults);
-  const [divHeight, setDivHeight] = useState(760);
+  const [divHeight, setDivHeight] = useState(617);
   const searchText = useRef(null);
   const dispatch = useDispatch();
 
@@ -24,9 +23,10 @@ const GptSearchBar = () => {
   };
 
   const handleGptSearchClick = async () => {
-    if (movieResults) {
-      return;
-    }
+    // console.log("search text ", searchText.current.value);
+    // if (movieResults) {
+    //   return;
+    // }
 
     // Make an API call to GPT API and get movie results
     const gptQuery =
@@ -42,23 +42,27 @@ const GptSearchBar = () => {
     console.log("GPT result : ", gptResults.choices?[0]?.message?.content);
     */
 
-    /* This is getting movies using constants */
-    const gptResults = gptMovieResultConstants;
-    if (!gptResults.choices) {
-      // Write Error Handling
-      return;
-    }
-    const gptMovieList = gptResults?.choices[0]?.message?.content.split(",");
-    // For each movie I will search TMDB API
-    const promiseArray = gptMovieList.map((movie) => searchMovieTMDB(movie));
-    const tmdbMovieListResult = await Promise.allSettled(promiseArray);
-    dispatch(addGptMovieResult({ movieNames: gptMovieList, movieResults: tmdbMovieListResult }));
-    setDivHeight(400);
+    const gptMovie = searchText.current.value;
+    const searchPromise = searchMovieTMDB(gptMovie);
+    searchPromise.then((searchMovieTmdb) => {
+      if (searchMovieTmdb.length < 1) {
+        return;
+      }
+      const tmdbMovieResult = Object({
+        status: "fulfilled",
+        value: [...searchMovieTmdb],
+      });
+      dispatch(addGptMovieResult({ movieName: gptMovie, movieResult: tmdbMovieResult }));
+      setDivHeight(400);
+    });
+    searchText.current.value = "";
   };
 
   useEffect(() => {
-    if (movieResults) {
+    if (movieResults.length > 0) {
       setDivHeight(400);
+    } else {
+      setDivHeight(617);
     }
   }, [divHeight, movieResults]);
 

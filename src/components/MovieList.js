@@ -7,7 +7,7 @@ import {
   addTrendingMoviesPageNumber,
 } from "../utils/moviesSlice";
 
-const MovieList = forwardRef(({ title, movies }, ref) => {
+const MovieList = forwardRef(({ title, movies, removieMovie, index }, ref) => {
   const dispatch = useDispatch();
   const uniqueKey = new Set();
 
@@ -43,7 +43,19 @@ const MovieList = forwardRef(({ title, movies }, ref) => {
 
   return (
     <div className="px-2 bg-transparent">
-      <h1 className="text-md md:text-3xl py-4 text-white">{title}</h1>
+      <div className="flex ">
+        <h1 className="text-md md:text-3xl py-4 text-white">{title}</h1>
+        {index !== undefined && (
+          <button
+            className="bg-slate-500 px-3 mx-10 my-5 rounded-md hover:text-white"
+            onClick={() => {
+              removieMovie(index);
+            }}
+          >
+            X
+          </button>
+        )}
+      </div>
       <div className="flex overflow-x-auto" ref={ref}>
         <div className="flex">
           {movies &&
